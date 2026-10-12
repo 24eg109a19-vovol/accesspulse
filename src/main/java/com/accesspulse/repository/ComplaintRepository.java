@@ -22,6 +22,7 @@ public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
     long countByStatus(ComplaintStatus status);
     long countByPriorityLevel(PriorityLevel priorityLevel);
     long countByCategory(ComplaintCategory category);
+    boolean existsByLocation(Location location);
 
     @Query("SELECT c.category, COUNT(c) FROM Complaint c GROUP BY c.category")
     List<Object[]> countComplaintsByCategory();

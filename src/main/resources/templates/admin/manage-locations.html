@@ -47,6 +47,7 @@
                                         <th>Zone / Room</th>
                                         <th>Importance Footfall</th>
                                         <th>Landmark</th>
+                                        <th style="text-align: right;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -58,9 +59,18 @@
                                             <span class="badge badge-subtle-primary" th:text="${loc.importanceScore} + ' / 5'">3/5</span>
                                         </td>
                                         <td style="font-size: 0.85rem; color: var(--text-secondary);" th:text="${loc.landmark != null ? loc.landmark : '-'}">Landmark</td>
+                                        <td style="text-align: right;">
+                                            <form th:action="@{/admin/locations/{id}/delete(id=${loc.id})}" method="post" style="display: inline;"
+                                                  onsubmit="return confirm('Are you sure you want to remove this location?');">
+                                                <button type="submit" class="btn btn-sm" style="background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3);">
+                                                    <i class="fa-solid fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
+
                         </div>
                     </div>
                 </div>

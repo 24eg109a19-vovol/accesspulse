@@ -356,6 +356,16 @@ public class ComplaintService {
                 return locationRepository.save(location);
         }
 
+        @Transactional
+        public void deleteLocation(Long id) {
+                Location location = locationRepository.findById(id)
+                                .orElseThrow(() -> new IllegalArgumentException("Location not found with id: " + id));
+                if (complaintRepository.existsByLocation(location)) {
+                        throw new IllegalStateException("Cannot delete location because existing complaints are associated with it.");
+                }
+                locationRepository.delete(location);
+        }
+
         public Map<String, Object> getSystemStatistics() {
                 Map<String, Object> stats = new HashMap<>();
                 long total = complaintRepository.count();

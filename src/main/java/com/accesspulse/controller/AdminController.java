@@ -210,6 +210,17 @@ public class AdminController {
         return "redirect:/admin/locations";
     }
 
+    @PostMapping("/locations/{id}/delete")
+    public String deleteLocation(@PathVariable("id") Long id, RedirectAttributes redirectAttributes) {
+        try {
+            complaintService.deleteLocation(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Campus location removed successfully.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        return "redirect:/admin/locations";
+    }
+
     @GetMapping("/users")
     public String manageUsers(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         User user = userService.findByEmail(userDetails.getUsername()).orElseThrow();
