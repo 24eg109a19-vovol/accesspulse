@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: accesspulse
+    env: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SPRING_PROFILES_ACTIVE
+        value: h2
+      - key: UPLOAD_DIR
+        value: /app/uploads

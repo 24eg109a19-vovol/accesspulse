@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Campus Locations - AccessPulse Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('locations')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Campus Accessibility Locations</h1>
+                    <p class="page-subtitle">Configure buildings, floors, zones, and importance footfall weightings used in algorithmic priority triage.</p>
+                </div>
+            </div>
+
+            <!-- Flash alerts -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <div class="grid grid-cols-3">
+                
+                <!-- Left: List Locations (2 cols) -->
+                <div style="grid-column: span 2;">
+                    <div class="table-container" style="margin-top: 0;">
+                        <div class="table-header-bar">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark);">Configured Campus Zones</h3>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="ap-table">
+                                <thead>
+                                    <tr>
+                                        <th>Building</th>
+                                        <th>Level / Floor</th>
+                                        <th>Zone / Room</th>
+                                        <th>Importance Footfall</th>
+                                        <th>Landmark</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="loc : ${locations}">
+                                        <td style="font-weight: 700;" th:text="${loc.buildingName}">Building</td>
+                                        <td th:text="${loc.floorOrLevel}">Level</td>
+                                        <td th:text="${loc.zoneOrRoom}">Zone</td>
+                                        <td>
+                                            <span class="badge badge-subtle-primary" th:text="${loc.importanceScore} + ' / 5'">3/5</span>
+                                        </td>
+                                        <td style="font-size: 0.85rem; color: var(--text-secondary);" th:text="${loc.landmark != null ? loc.landmark : '-'}">Landmark</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Add Location Form (1 col) -->
+                <div>
+                    <div class="card">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 1.25rem;">
+                            <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> Add Campus Location
+                        </h3>
+
+                        <form th:action="@{/admin/locations}" th:object="${newLocation}" method="post">
+                            <div class="form-group">
+                                <label class="form-label" for="buildingName">Building Name *</label>
+                                <input type="text" id="buildingName" th:field="*{buildingName}" class="form-control" placeholder="e.g. Science Complex" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="floorOrLevel">Floor / Level *</label>
+                                <input type="text" id="floorOrLevel" th:field="*{floorOrLevel}" class="form-control" placeholder="e.g. 2nd Floor or West Wing" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="zoneOrRoom">Zone / Room *</label>
+                                <input type="text" id="zoneOrRoom" th:field="*{zoneOrRoom}" class="form-control" placeholder="e.g. North Elevator Lobby" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="importanceScore">Footfall / Importance (1-5)</label>
+                                <input type="number" id="importanceScore" th:field="*{importanceScore}" min="1" max="5" class="form-control" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="landmark">Landmark / Proximity</label>
+                                <input type="text" id="landmark" th:field="*{landmark}" class="form-control" placeholder="e.g. Opposite Main Amphitheater">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">
+                                <i class="fa-solid fa-plus"></i> Save Campus Location
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

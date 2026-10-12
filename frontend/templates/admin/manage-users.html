@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage User Accounts - AccessPulse Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('users')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Campus Community Accounts</h1>
+                    <p class="page-subtitle">Manage institutional users across Student, Faculty, Maintenance Technicians, and Administrators.</p>
+                </div>
+            </div>
+
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+            <div class="table-container" style="margin-top: 0;">
+                <div style="overflow-x: auto;">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department / ID</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="u : ${users}">
+                                <td style="font-weight: 700;" th:text="${u.fullName}">Full Name</td>
+                                <td th:text="${u.email}">email@campus.edu</td>
+                                <td>
+                                    <span class="badge badge-subtle-primary" th:text="${u.role.displayName}">Role</span>
+                                </td>
+                                <td th:text="${u.departmentOrId != null ? u.departmentOrId : '-'}">Department</td>
+                                <td>
+                                    <span th:if="${u.active}" class="badge badge-subtle-success">Active</span>
+                                    <span th:if="${!u.active}" class="badge badge-subtle-danger">Disabled</span>
+                                </td>
+                                <td th:text="${#temporals.format(u.createdAt, 'MMM dd, yyyy')}">Date</td>
+                                <td>
+                                    <form th:if="${u.email != currentUser.email}" th:action="@{'/admin/users/' + ${u.id} + '/toggle'}" method="post" style="display: inline;">
+                                        <button type="submit" class="btn btn-secondary btn-sm" th:title="${u.active ? 'Disable Account' : 'Enable Account'}">
+                                            <i class="fa-solid" th:classappend="${u.active ? 'fa-ban' : 'fa-check'}"></i>
+                                            <span th:text="${u.active ? 'Disable' : 'Enable'}">Toggle</span>
+                                        </button>
+                                    </form>
+                                    <span th:if="${u.email == currentUser.email}" style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">Current User</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

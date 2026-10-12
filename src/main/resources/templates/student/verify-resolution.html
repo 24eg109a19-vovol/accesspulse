@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Resolution - AccessPulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('my-complaints')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Verify Accessibility Barrier Resolution</h1>
+                    <p class="page-subtitle" th:text="'Review repair work for #' + ${complaint.id} + ': ' + ${complaint.title}"></p>
+                </div>
+            </div>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                
+                <!-- Resolution Preview Card -->
+                <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--success);">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--success); margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Maintenance Completion Notes
+                    </h3>
+                    <p style="color: var(--dark); line-height: 1.6; white-space: pre-line; font-size: 0.95rem;" 
+                       th:text="${resolution != null ? resolution.completionNotes : 'No completion notes recorded.'}">
+                    </p>
+
+                    <div th:if="${resolution != null and resolution.resolutionImagePath != null}" style="margin-top: 1rem;">
+                        <h4 style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem;">Proof Photo:</h4>
+                        <img th:src="@{'/uploads/' + ${resolution.resolutionImagePath}}" alt="Proof" 
+                             style="max-width: 100%; max-height: 280px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    </div>
+                </div>
+
+                <!-- Verification & Rating Form -->
+                <div class="card">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--dark);">
+                        Student Verification & Feedback
+                    </h3>
+
+                    <form th:action="@{'/complaints/' + ${complaint.id} + '/verify'}" th:object="${feedbackRequest}" method="post">
+                        <input type="hidden" th:field="*{complaintId}">
+                        
+                        <div class="form-group">
+                            <label class="form-label">Is the barrier completely cleared and accessible?</label>
+                            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; color: var(--success);">
+                                    <input type="radio" th:field="*{resolutionSatisfactory}" value="true" checked>
+                                    <i class="fa-solid fa-circle-check"></i> Yes, fully resolved & accessible
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; color: var(--danger);">
+                                    <input type="radio" th:field="*{resolutionSatisfactory}" value="false">
+                                    <i class="fa-solid fa-circle-xmark"></i> No, still defective or obstructed
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label">Rate the Maintenance Speed and Quality (1 - 5 Stars)</label>
+                            <div class="star-rating">
+                                <input type="radio" id="star5" th:field="*{rating}" value="5" /><label for="star5" title="5 stars"><i class="fa-solid fa-star"></i></label>
+                                <input type="radio" id="star4" th:field="*{rating}" value="4" /><label for="star4" title="4 stars"><i class="fa-solid fa-star"></i></label>
+                                <input type="radio" id="star3" th:field="*{rating}" value="3" /><label for="star3" title="3 stars"><i class="fa-solid fa-star"></i></label>
+                                <input type="radio" id="star2" th:field="*{rating}" value="2" /><label for="star2" title="2 stars"><i class="fa-solid fa-star"></i></label>
+                                <input type="radio" id="star1" th:field="*{rating}" value="1" /><label for="star1" title="1 star"><i class="fa-solid fa-star"></i></label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label" for="comments">Feedback Comments</label>
+                            <textarea id="comments" th:field="*{comments}" class="form-control" rows="3" 
+                                      placeholder="Share details about the repair quality or any remaining accessibility issues..."></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                            <a th:href="@{'/complaints/' + ${complaint.id}}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 1.5rem;">
+                                <i class="fa-solid fa-check-double"></i> Submit Verification
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

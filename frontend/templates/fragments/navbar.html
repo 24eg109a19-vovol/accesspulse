@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head></head>
+<body>
+    <header th:fragment="navbar" class="ap-navbar">
+        <div class="nav-container">
+            <a th:href="@{/}" class="brand-logo">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-universal-access"></i>
+                </div>
+                <div>
+                    <span style="letter-spacing: -0.02em; font-weight: 800; color: var(--primary);">AccessPulse</span>
+                    <span style="font-size: 0.75rem; display: block; color: var(--text-secondary); font-weight: 500; line-height: 1;">Campus Barrier Resolution System</span>
+                </div>
+            </a>
+
+            <ul class="nav-links">
+                <li class="nav-item"><a th:href="@{/}">Home</a></li>
+                <li class="nav-item" sec:authorize="isAuthenticated()"><a th:href="@{/dashboard}">Dashboard</a></li>
+                <li class="nav-item" sec:authorize="hasAnyRole('STUDENT', 'STAFF')"><a th:href="@{/student/report}">Report Barrier</a></li>
+                <li class="nav-item" sec:authorize="hasAnyRole('STUDENT', 'STAFF')"><a th:href="@{/student/my-complaints}">My Reports</a></li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')"><a th:href="@{/admin/complaints}">All Barriers</a></li>
+                <li class="nav-item" sec:authorize="hasRole('MAINTENANCE')"><a th:href="@{/maintenance/dashboard}">My Tasks</a></li>
+            </ul>
+
+            <div style="display: flex; align-items: center; gap: 0.85rem;">
+                <!-- Theme Mode Toggle Button -->
+                <button type="button" id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Dark/Light Mode" aria-label="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon" id="themeToggleIcon"></i>
+                </button>
+
+                <!-- Notifications icon if logged in -->
+                <div sec:authorize="isAuthenticated()" style="position: relative;">
+                    <a th:href="@{/notifications}" class="btn btn-secondary btn-sm" style="border-radius: var(--radius-full); width: 38px; height: 38px; padding: 0;">
+                        <i class="fa-solid fa-bell"></i>
+                        <span th:if="${unreadCount != null and unreadCount > 0}" th:text="${unreadCount}" 
+                              style="position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; border-radius: var(--radius-full); font-size: 0.7rem; padding: 0.1rem 0.35rem; font-weight: 700;">
+                        </span>
+                    </a>
+                </div>
+
+                <!-- User profile / Logout -->
+                <div sec:authorize="isAuthenticated()" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <a th:href="@{/profile}" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fa-solid fa-user-circle"></i>
+                        <span sec:authentication="name" style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">User</span>
+                    </a>
+                    <form th:action="@{/logout}" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-outline-primary btn-sm" title="Log Out">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Guest buttons -->
+                <div sec:authorize="!isAuthenticated()" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <a th:href="@{/login}" class="btn btn-secondary btn-sm">Log In</a>
+                    <a th:href="@{/register}" class="btn btn-primary btn-sm">Get Started</a>
+                </div>
+            </div>
+        </div>
+    </header>
+</body>
+</html>

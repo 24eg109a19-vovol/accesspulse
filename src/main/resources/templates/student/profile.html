@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - AccessPulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('profile')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">User Account Profile</h1>
+                    <p class="page-subtitle">Personal account details and institutional roles.</p>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 650px; margin: 0 auto;">
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700;">
+                        <span th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</span>
+                    </div>
+                    <div>
+                        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--dark);" th:text="${currentUser.fullName}">User Name</h2>
+                        <span class="badge badge-subtle-primary" th:text="${currentUser.role.displayName}">Role</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                        <span style="color: var(--text-secondary);">Email Address:</span>
+                        <strong style="color: var(--dark);" th:text="${currentUser.email}">email@campus.edu</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                        <span style="color: var(--text-secondary);">Department / ID:</span>
+                        <strong style="color: var(--dark);" th:text="${currentUser.departmentOrId != null ? currentUser.departmentOrId : 'N/A'}">Department</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                        <span style="color: var(--text-secondary);">Phone Number:</span>
+                        <strong style="color: var(--dark);" th:text="${currentUser.phone != null ? currentUser.phone : 'Not provided'}">Phone</strong>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 0.95rem;">
+                        <span style="color: var(--text-secondary);">Member Since:</span>
+                        <strong style="color: var(--dark);" th:text="${#temporals.format(currentUser.createdAt, 'MMMM dd, yyyy')}">Date</strong>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

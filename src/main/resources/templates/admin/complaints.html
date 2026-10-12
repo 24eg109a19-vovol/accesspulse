@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Barrier Complaints - AccessPulse Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <style>
+        .ap-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(6px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .ap-modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('complaints')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Barrier Reports Management</h1>
+                    <p class="page-subtitle">Verify incoming complaints, calibrate priority parameters, assign maintenance engineers, and monitor progress.</p>
+                </div>
+            </div>
+
+            <!-- Flash alerts -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <!-- Filters Bar -->
+            <div class="card" style="margin-bottom: 1.5rem; padding: 1rem 1.5rem;">
+                <form th:action="@{/admin/complaints}" method="get" style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div style="font-weight: 600; font-size: 0.9rem; color: var(--dark);">Filter by:</div>
+                    
+                    <select name="status" class="form-select" style="width: auto; padding: 0.5rem 1rem;">
+                        <option value="">All Statuses</option>
+                        <option th:each="st : ${T(com.accesspulse.enums.ComplaintStatus).values()}" 
+                                th:value="${st.name()}" 
+                                th:text="${st.displayName}"
+                                th:selected="${statusFilter == st.name()}">
+                        </option>
+                    </select>
+
+                    <select name="priority" class="form-select" style="width: auto; padding: 0.5rem 1rem;">
+                        <option value="">All Priority Levels</option>
+                        <option th:each="pr : ${T(com.accesspulse.enums.PriorityLevel).values()}" 
+                                th:value="${pr.name()}" 
+                                th:text="${pr.displayName}"
+                                th:selected="${priorityFilter == pr.name()}">
+                        </option>
+                    </select>
+
+                    <button type="submit" class="btn btn-primary btn-sm">Apply Filter</button>
+                    <a th:href="@{/admin/complaints}" class="btn btn-secondary btn-sm">Reset</a>
+                </form>
+            </div>
+
+            <!-- Full Complaints Table -->
+            <div class="table-container">
+                <div style="overflow-x: auto;">
+                    <table class="ap-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Category</th>
+                                <th>Details & Reporter</th>
+                                <th>Location</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assigned Staff</th>
+                                <th>Moderation Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${#lists.isEmpty(complaints)}">
+                                <td colspan="8" style="text-align: center; padding: 2.5rem; color: var(--text-secondary);">
+                                    No complaints match the selected filter criteria.
+                                </td>
+                            </tr>
+                            <tr th:each="c : ${complaints}">
+                                <td style="font-weight: 700;" th:text="'#' + ${c.id}">#1</td>
+                                <td>
+                                    <span class="badge badge-subtle-primary" th:text="${c.category.displayName}">Category</span>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 600; color: var(--dark);" th:text="${c.title}">Title</div>
+                                    <div style="font-size: 0.775rem; color: var(--text-secondary);" th:text="'By ' + ${c.reporter.fullName} + ' (' + ${c.reporter.email} + ')'">Reporter</div>
+                                </td>
+                                <td>
+                                    <div th:text="${c.location.buildingName}">Building</div>
+                                    <div style="font-size: 0.775rem; color: var(--text-secondary);" th:text="${c.location.floorOrLevel} + ' - ' + ${c.location.zoneOrRoom}">Floor</div>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${c.priorityLevel.badgeClass}" 
+                                          th:text="${c.priorityLevel.displayName} + ' (' + ${#numbers.formatDecimal(c.priorityScore, 1, 1)} + ')'">HIGH</span>
+                                </td>
+                                <td>
+                                    <span class="badge" th:classappend="${c.status.badgeClass}" th:text="${c.status.displayName}">STATUS</span>
+                                </td>
+                                <td>
+                                    <span th:if="${c.assignedStaff != null}" style="font-weight: 600;" th:text="${c.assignedStaff.fullName}">Staff</span>
+                                    <span th:if="${c.assignedStaff == null}" style="color: var(--text-muted); font-style: italic;">Unassigned</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 0.35rem; align-items: center; flex-wrap: wrap;">
+                                        <!-- Verify Action if SUBMITTED or UNDER_REVIEW -->
+                                        <form th:if="${c.status.name() == 'SUBMITTED' or c.status.name() == 'UNDER_REVIEW'}" 
+                                              th:action="@{'/admin/complaints/' + ${c.id} + '/verify'}" method="post" style="display: inline;">
+                                            <button type="submit" class="btn btn-success btn-sm" title="Verify Barrier">
+                                                <i class="fa-solid fa-check"></i> Verify
+                                            </button>
+                                        </form>
+
+                                        <!-- Assign Action -->
+                                        <a th:href="@{'/admin/complaints/' + ${c.id} + '/assign'}" class="btn btn-primary btn-sm" title="Assign Staff">
+                                            <i class="fa-solid fa-user-plus"></i> Assign
+                                        </a>
+
+                                        <!-- Recalibrate Priority Modal Trigger -->
+                                        <button type="button" class="btn btn-warning btn-sm" th:onclick="'openModal(\'priorityModal-' + ${c.id} + '\')'" title="Adjust Priority Factors">
+                                            <i class="fa-solid fa-sliders"></i>
+                                        </button>
+
+                                        <!-- Detail Link -->
+                                        <a th:href="@{'/complaints/' + ${c.id}}" class="btn btn-secondary btn-sm" title="View Details">
+                                            <i class="fa-solid fa-eye"></i>
+                                        </a>
+                                    </div>
+
+                                    <!-- Priority Recalibration Modal -->
+                                    <div th:id="'priorityModal-' + ${c.id}" class="ap-modal-backdrop">
+                                        <div class="ap-modal-content">
+                                            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1rem; color: var(--dark);">
+                                                Recalibrate Priority Matrix for #<span th:text="${c.id}">1</span>
+                                            </h3>
+
+                                            <form th:action="@{'/admin/complaints/' + ${c.id} + '/priority'}" method="post">
+                                                <div class="form-group">
+                                                    <label class="form-label">Accessibility Impact (1-5)</label>
+                                                    <input type="number" name="accessibilityImpact" th:value="${c.accessibilityImpact}" min="1" max="5" class="form-control" required>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="form-label">People Affected (1-5)</label>
+                                                    <input type="number" name="peopleAffected" th:value="${c.peopleAffected}" min="1" max="5" class="form-control" required>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="form-label">Safety Risk (1-5)</label>
+                                                    <input type="number" name="safetyRisk" th:value="${c.safetyRisk}" min="1" max="5" class="form-control" required>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label class="form-label">Admin Notes</label>
+                                                    <textarea name="adminNotes" class="form-control" rows="2" th:text="${c.adminNotes}" placeholder="Reason for adjustment..."></textarea>
+                                                </div>
+
+                                                <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                                                    <button type="button" class="btn btn-secondary" th:onclick="'closeModal(\'priorityModal-' + ${c.id} + '\')'">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Recalculate & Save</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

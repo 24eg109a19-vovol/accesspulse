@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Accessibility Barrier - AccessPulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{fragments/sidebar :: sidebar('report')}"></div>
+
+        <main class="dashboard-main">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">Report Accessibility Barrier</h1>
+                    <p class="page-subtitle">Submit physical barrier details, location tags, and photo evidence to trigger automatic algorithmic triage.</p>
+                </div>
+            </div>
+
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <form th:action="@{/student/report}" th:object="${complaintRequest}" method="post" enctype="multipart/form-data">
+                <div class="grid grid-cols-3">
+                    
+                    <!-- Left: Main Form (2 cols) -->
+                    <div style="grid-column: span 2;">
+                        <div class="card">
+                            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--dark);">Barrier Incident Details</h3>
+
+                            <div class="form-group">
+                                <label class="form-label" for="title">Issue Summary / Title *</label>
+                                <input type="text" id="title" th:field="*{title}" class="form-control" placeholder="e.g. Science Complex Elevator #2 Door Stuck Halfway" required>
+                                <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="form-text" style="color: var(--danger);"></div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label" for="category">Barrier Category *</label>
+                                    <select id="category" th:field="*{category}" class="form-select" required>
+                                        <option value="" disabled selected>-- Select Category --</option>
+                                        <option th:each="cat : ${categories}" 
+                                                th:value="${cat}" 
+                                                th:text="${cat.displayName}"
+                                                th:attr="data-default-impact=${cat.defaultImpact}, data-default-safety=${cat.defaultSafetyRisk}">
+                                        </option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('category')}" th:errors="*{category}" class="form-text" style="color: var(--danger);"></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="locationId">Campus Location *</label>
+                                    <select id="locationId" th:field="*{locationId}" class="form-select" required>
+                                        <option value="" disabled selected>-- Select Building & Floor --</option>
+                                        <option th:each="loc : ${locations}" 
+                                                th:value="${loc.id}" 
+                                                th:text="${loc.formattedName}"
+                                                th:attr="data-importance=${loc.importanceScore}">
+                                        </option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('locationId')}" th:errors="*{locationId}" class="form-text" style="color: var(--danger);"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="description">Detailed Description & Impact on Mobility *</label>
+                                <textarea id="description" th:field="*{description}" class="form-control" rows="4" 
+                                          placeholder="Describe the obstruction, whether wheelchairs or canes can bypass it, and any immediate hazard..." required></textarea>
+                                <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="form-text" style="color: var(--danger);"></div>
+                            </div>
+
+                            <!-- Photo Upload Area -->
+                            <div class="form-group">
+                                <label class="form-label">Upload Photo Evidence (Optional but recommended)</label>
+                                <div style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; text-align: center; background: var(--input-bg); position: relative;">
+                                    <div id="uploadPrompt">
+                                        <i class="fa-solid fa-cloud-arrow-up" style="font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                                        <p style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Click to select or drag and drop an image</p>
+                                        <p style="font-size: 0.775rem; color: var(--text-secondary);">PNG, JPG, JPEG up to 10MB</p>
+                                    </div>
+                                    <div id="imagePreview" style="display: none; margin-top: 0.5rem;">
+                                        <img id="previewImg" src="#" alt="Preview" style="max-height: 180px; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);">
+                                    </div>
+                                    <input type="file" id="imageFile" name="imageFile" accept="image/*" 
+                                           style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Severity Matrix Criteria -->
+                        <div class="card" style="margin-top: 1.5rem;">
+                            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 1.25rem; color: var(--text-primary);">
+                                <i class="fa-solid fa-sliders" style="color: var(--primary);"></i> Severity & Impact Assessment Factors
+                            </h3>
+
+                            <div class="form-group">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <label class="form-label" for="accessibilityImpact">Accessibility Impact Severity (1 = Minor inconvenience, 5 = Complete blockage)</label>
+                                    <span id="impactVal" class="range-val">3</span>
+                                </div>
+                                <div class="range-container">
+                                    <input type="range" id="accessibilityImpact" th:field="*{accessibilityImpact}" min="1" max="5" class="range-slider">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <label class="form-label" for="peopleAffected">Estimated People Affected Daily (1 = Few, 5 = Hundreds / High traffic artery)</label>
+                                    <span id="peopleVal" class="range-val">3</span>
+                                </div>
+                                <div class="range-container">
+                                    <input type="range" id="peopleAffected" th:field="*{peopleAffected}" min="1" max="5" class="range-slider">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div style="display: flex; justify-content: space-between;">
+                                    <label class="form-label" for="safetyRisk">Immediate Physical / Safety Risk (1 = Low, 5 = Severe injury hazard)</label>
+                                    <span id="safetyVal" class="range-val">3</span>
+                                </div>
+                                <div class="range-container">
+                                    <input type="range" id="safetyRisk" th:field="*{safetyRisk}" min="1" max="5" class="range-slider">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Priority Calculator Widget (1 col) -->
+                    <div>
+                        <div class="card" style="position: sticky; top: 90px;">
+                            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem;">
+                                <i class="fa-solid fa-brain" style="color: var(--primary);"></i> Algorithmic Priority Matrix
+                            </h3>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.25rem;">
+                                The system dynamically evaluates your parameters using the formula:
+                                <br>
+                                <code style="background: var(--input-bg); border: 1px solid var(--border-color); color: var(--primary); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Impact + People + Risk + Location Importance</code>
+                            </p>
+
+                            <div style="text-align: center; padding: 1.5rem; background: var(--input-bg); border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 1.5rem;">
+                                <div style="font-size: 0.8rem; text-transform: uppercase; font-weight: 700; color: var(--text-secondary);">Calculated Priority Score</div>
+                                <div id="calculatedScore" style="font-size: 3rem; font-weight: 800; color: var(--primary); line-height: 1.1;">12</div>
+                                <div style="margin-top: 0.5rem;">
+                                    <span id="calculatedLevelBadge" class="badge badge-priority-medium">MEDIUM</span>
+                                </div>
+                            </div>
+
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.5;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                    <span>0 - 7 Points:</span> <strong>LOW</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                    <span>8 - 14 Points:</span> <strong>MEDIUM</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+                                    <span>15 - 20 Points:</span> <strong>HIGH</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>21+ Points:</span> <strong style="color: var(--danger);">CRITICAL</strong>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+                                <i class="fa-solid fa-paper-plane"></i> Submit Barrier Report
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/complaint-form.js}"></script>
+</body>
+</html>
