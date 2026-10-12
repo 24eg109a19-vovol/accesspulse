@@ -5,23 +5,16 @@
 # -----------------
 # 1. Build Stage
 # -----------------
-FROM eclipse-temurin:21-jdk-jammy AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /workspace
 
-# Copy Maven wrapper configuration and dependencies descriptor
-COPY mvnw .
-COPY .mvn .mvn
+# Copy pom.xml and download dependencies
 COPY pom.xml .
-
-# Fix CRLF line endings on Windows checkouts & make mvnw executable
-RUN sed -i 's/\r$//' mvnw && chmod +x mvnw
-
-# Resolve dependencies in a cache-friendly manner
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B || true
 
 # Copy project source files and build the production artifact
 COPY src src
-RUN ./mvnw clean package -DskipTests && \
+RUN mvn clean package -DskipTests && \
     cp target/accesspulse-*.jar app.jar
 
 # -----------------
