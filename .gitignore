@@ -36,3 +36,6 @@ build/
 uploads/
 *.log
 
+# Decoupled Standalone Frontend Repository
+frontend/
+
