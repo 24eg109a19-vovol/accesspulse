@@ -1,6 +1,7 @@
 package com.accesspulse.repository;
 
 import com.accesspulse.entity.Complaint;
+import com.accesspulse.entity.Location;
 import com.accesspulse.entity.User;
 import com.accesspulse.enums.ComplaintCategory;
 import com.accesspulse.enums.ComplaintStatus;
